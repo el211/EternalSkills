@@ -1,5 +1,16 @@
 name: MythicSkill
-version: '${project.version}'
+version: 1.0.0
+description: A plugin to trigger various skills on player actions.
+author: Elias
 main: com.afelia.eskills.Eskills
 api-version: '1.20'
-load: STARTUP
+depend: [MythicMobs]
+commands:
+  eskills:
+    description: Manage player skills and tags
+    usage: /eskills tag add <tag> <player> | /eskills tag remove <tag> <player> | /eskills tag clear <player>
+    permission: mythicskill.tag
+permissions:
+  mythicskill.trigger:
+    description: Allows players to trigger skills.
+    default: true
