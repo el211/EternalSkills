@@ -1,5 +1,5 @@
 name: MythicSkill
 version: '${project.version}'
-main: com.afelia.mythicskill.MythicSkill
+main: com.afelia.eskills.Eskills
 api-version: '1.20'
 load: STARTUP

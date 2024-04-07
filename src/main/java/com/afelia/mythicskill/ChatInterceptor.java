@@ -1,2 +1,3 @@
-package com.afelia.mythicskill;public class ChatInterceptor {
+package com.afelia.mythicskill;
+public class ChatInterceptor {
 }

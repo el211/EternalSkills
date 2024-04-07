@@ -29,18 +29,20 @@ public class Eskills extends JavaPlugin implements Listener {
         getServer().getPluginManager().registerEvents(this, this);
         saveDefaultConfig();
         config = getConfig();
-        loadSkills();
         tagDataFile = new File(getDataFolder(), "tagdata.yml");
         if (!tagDataFile.exists()) {
             saveResource("tagdata.yml", false);
         }
         tagDataConfig = YamlConfiguration.loadConfiguration(tagDataFile);
+        loadSkills();
     }
 
     private void loadSkills() {
         ConfigurationSection skillsSection = config.getConfigurationSection("skills");
         if (skillsSection != null) {
+            System.out.println("Loading skills");
             for (String skillKey : skillsSection.getKeys(false)) {
+                System.out.println("Load skill : " + skillKey);
                 ConfigurationSection skillConfig = skillsSection.getConfigurationSection(skillKey);
                 if (skillConfig != null) {
                     String triggerActionString = skillConfig.getString("trigger-action");
@@ -50,6 +52,7 @@ public class Eskills extends JavaPlugin implements Listener {
                     String condition = skillConfig.getString("condition");
                     String tag = skillConfig.getString("tag");
                     skills.put(skillKey, new SkillData(triggerAction, skillToExecute, cooldownDuration, condition, tag));
+                    System.out.println("Skill loaded !");
                 }
             }
         }
@@ -65,7 +68,7 @@ public class Eskills extends JavaPlugin implements Listener {
                 if (player.hasPermission("eskills.trigger")) {
                     if (checkCooldown(player, skill)) {
                         getLogger().info("Cooldown check passed."); // Add debug message
-                        if (checkTag(player, skill)) {
+                        if (!checkTag(player, skill)) {
                             getLogger().info("Tag check passed."); // Add debug message
                             executeSkill(player, skill);
                             startCooldown(player, skill);
@@ -146,7 +149,7 @@ public class Eskills extends JavaPlugin implements Listener {
     private boolean checkTag(Player player, SkillData skill) {
         String tag = skill.getTag();
         if (tag == null || tag.isEmpty()) {
-            return true; // No tag required
+            return false; // No tag required
         }
         return tagDataConfig.getBoolean(player.getUniqueId().toString() + "." + tag);
     }
@@ -161,14 +164,14 @@ public class Eskills extends JavaPlugin implements Listener {
 
     // Method to convert org.bukkit.event.block.Action to SkillAction
     private SkillAction convertToSkillAction(org.bukkit.event.block.Action action) {
-        switch (action) {
-            case RIGHT_CLICK_AIR:
+        switch (action.name()) {
+            case "RIGHT_CLICK_AIR":
                 return SkillAction.RIGHT_CLICK_AIR;
-            case LEFT_CLICK_AIR:
+            case "LEFT_CLICK_AIR":
                 return SkillAction.LEFT_CLICK_AIR;
-            case RIGHT_CLICK_BLOCK:
+            case "RIGHT_CLICK_BLOCK":
                 return SkillAction.RIGHT_CLICK_BLOCK;
-            case LEFT_CLICK_BLOCK:
+            case "LEFT_CLICK_BLOCK":
                 return SkillAction.LEFT_CLICK_BLOCK;
             default:
                 return null;
@@ -179,7 +182,11 @@ public class Eskills extends JavaPlugin implements Listener {
         long lastExecuted = cooldowns.getOrDefault(player.getUniqueId(), 0L);
         long currentTime = System.currentTimeMillis();
         long cooldown = skill.getCooldownDuration() * 1000; // Cooldown duration in milliseconds
-        return currentTime - lastExecuted > cooldown;
+        long tot = currentTime - lastExecuted;
+        player.sendMessage("Debug : " + lastExecuted + " : " + currentTime + " : " + cooldown + " : " + tot);
+        boolean i =  tot >= cooldown;
+        player.sendMessage("Debug : " + i);
+        return i;
     }
 
     private void executeSkill(Player player, SkillData skill) {
