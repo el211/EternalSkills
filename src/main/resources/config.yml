@@ -1,0 +1,13 @@
+skills:
+  skill1:
+    trigger-action: LEFT_CLICK_BLOCK
+    skill-to-execute: 'AngrySludgePoison'
+    cooldown-duration: 1 # Cooldown duration in seconds
+    condition: 'world:world_nether' # Example condition (multiple conditions can be added separated by commas)
+    tag: fire # Example tag for this skill
+  skill2:
+    trigger-action: LEFT_CLICK_BLOCK
+    skill-to-execute: 'YourSkillNameHere2'
+    cooldown-duration: 30 # Cooldown duration in seconds
+    condition: 'world:world_nether' # Example condition
+    tag: water # Example tag for this skill
