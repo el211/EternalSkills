@@ -10,5 +10,8 @@ public enum SkillAction {
     SHIFT_LEFT_CLICK_BLOCK,
     SHIFT_RIGHT_CLICK_BLOCK,
     JUMP_LEFT_CLICK,
+    SHIFT_LEFT_CLICK_AIR,
+    SHIFT_RIGHT_CLICK_AIR,
+
     // Add more actions as needed
 }
