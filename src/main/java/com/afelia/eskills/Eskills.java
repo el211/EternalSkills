@@ -6,6 +6,7 @@ import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
+import org.bukkit.event.block.Action;
 import org.bukkit.event.player.PlayerCommandPreprocessEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -40,9 +41,7 @@ public class Eskills extends JavaPlugin implements Listener {
     private void loadSkills() {
         ConfigurationSection skillsSection = config.getConfigurationSection("skills");
         if (skillsSection != null) {
-            System.out.println("Loading skills");
             for (String skillKey : skillsSection.getKeys(false)) {
-                System.out.println("Load skill : " + skillKey);
                 ConfigurationSection skillConfig = skillsSection.getConfigurationSection(skillKey);
                 if (skillConfig != null) {
                     String triggerActionString = skillConfig.getString("trigger-action");
@@ -52,7 +51,6 @@ public class Eskills extends JavaPlugin implements Listener {
                     String condition = skillConfig.getString("condition");
                     String tag = skillConfig.getString("tag");
                     skills.put(skillKey, new SkillData(triggerAction, skillToExecute, cooldownDuration, condition, tag));
-                    System.out.println("Skill loaded !");
                 }
             }
         }
@@ -62,13 +60,13 @@ public class Eskills extends JavaPlugin implements Listener {
     public void onPlayerInteract(PlayerInteractEvent event) {
         Player player = event.getPlayer();
         for (SkillData skill : skills.values()) {
-            SkillAction eventAction = convertToSkillAction(event.getAction());
+            SkillAction eventAction = convertToSkillAction(event.getAction(), player); // Pass the Player object
             if (eventAction == skill.getTriggerAction()) {
                 getLogger().info("Skill triggered: " + skill); // Add debug message
                 if (player.hasPermission("eskills.trigger")) {
                     if (checkCooldown(player, skill)) {
                         getLogger().info("Cooldown check passed."); // Add debug message
-                        if (!checkTag(player, skill)) {
+                        if (checkTag(player, skill)) {
                             getLogger().info("Tag check passed."); // Add debug message
                             executeSkill(player, skill);
                             startCooldown(player, skill);
@@ -126,7 +124,6 @@ public class Eskills extends JavaPlugin implements Listener {
         }
     }
 
-
     private void addTag(Player player, String tagName) {
         tagDataConfig.set(player.getUniqueId().toString() + "." + tagName, true);
         saveTagData();
@@ -145,14 +142,24 @@ public class Eskills extends JavaPlugin implements Listener {
         player.sendMessage("All tags cleared successfully!");
     }
 
-
     private boolean checkTag(Player player, SkillData skill) {
         String tag = skill.getTag();
         if (tag == null || tag.isEmpty()) {
-            return false; // No tag required
+            return true; // No tag required
         }
-        return tagDataConfig.getBoolean(player.getUniqueId().toString() + "." + tag);
+
+        String playerUUID = player.getUniqueId().toString();
+        if (!tagDataConfig.isSet(playerUUID)) {
+            getLogger().warning("Tag data for player " + playerUUID + " not found in tagdata.yml");
+            return false; // Player tag data not found
+        }
+
+        boolean hasTag = tagDataConfig.getBoolean(playerUUID + "." + tag, false);
+        getLogger().info("Player " + player.getName() + " has tag '" + tag + "': " + hasTag);
+
+        return hasTag;
     }
+
 
     private void saveTagData() {
         try {
@@ -163,18 +170,36 @@ public class Eskills extends JavaPlugin implements Listener {
     }
 
     // Method to convert org.bukkit.event.block.Action to SkillAction
-    private SkillAction convertToSkillAction(org.bukkit.event.block.Action action) {
-        switch (action.name()) {
-            case "RIGHT_CLICK_AIR":
+    private SkillAction convertToSkillAction(Action action, Player player) {
+        switch (action) {
+            case RIGHT_CLICK_AIR:
                 return SkillAction.RIGHT_CLICK_AIR;
-            case "LEFT_CLICK_AIR":
+            case LEFT_CLICK_AIR:
                 return SkillAction.LEFT_CLICK_AIR;
-            case "RIGHT_CLICK_BLOCK":
+            case RIGHT_CLICK_BLOCK:
                 return SkillAction.RIGHT_CLICK_BLOCK;
-            case "LEFT_CLICK_BLOCK":
+            case LEFT_CLICK_BLOCK:
                 return SkillAction.LEFT_CLICK_BLOCK;
+            case PHYSICAL: // Handles sneaking and jumping actions
+                // Check if the player is sneaking or jumping
+                if (player.isSneaking()) {
+                    if (action == Action.LEFT_CLICK_AIR) {
+                        return SkillAction.SHIFT_LEFT_CLICK_AIR;
+                    } else if (action == Action.RIGHT_CLICK_AIR) {
+                        return SkillAction.SHIFT_RIGHT_CLICK_AIR;
+                    } else if (action == Action.LEFT_CLICK_BLOCK) {
+                        return SkillAction.SHIFT_LEFT_CLICK_BLOCK;
+                    } else if (action == Action.RIGHT_CLICK_BLOCK) {
+                        return SkillAction.SHIFT_RIGHT_CLICK_BLOCK;
+                    }
+                } else {
+                    if (action == Action.LEFT_CLICK_AIR) {
+                        return SkillAction.JUMP_LEFT_CLICK;
+                    }
+                }
+                return null; // Unknown action
             default:
-                return null;
+                return null; // Unknown action
         }
     }
 
@@ -183,10 +208,7 @@ public class Eskills extends JavaPlugin implements Listener {
         long currentTime = System.currentTimeMillis();
         long cooldown = skill.getCooldownDuration() * 1000; // Cooldown duration in milliseconds
         long tot = currentTime - lastExecuted;
-        player.sendMessage("Debug : " + lastExecuted + " : " + currentTime + " : " + cooldown + " : " + tot);
-        boolean i =  tot >= cooldown;
-        player.sendMessage("Debug : " + i);
-        return i;
+        return tot >= cooldown;
     }
 
     private void executeSkill(Player player, SkillData skill) {
