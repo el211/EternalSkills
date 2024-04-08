@@ -1,5 +1,6 @@
 package com.afelia.eskills;
 
+import org.bukkit.Bukkit;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
@@ -13,6 +14,7 @@ import org.bukkit.plugin.java.JavaPlugin;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Base64;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
@@ -169,39 +171,80 @@ public class Eskills extends JavaPlugin implements Listener {
         }
     }
 
-    // Method to convert org.bukkit.event.block.Action to SkillAction
+
+
     private SkillAction convertToSkillAction(Action action, Player player) {
-        switch (action) {
-            case RIGHT_CLICK_AIR:
-                return SkillAction.RIGHT_CLICK_AIR;
-            case LEFT_CLICK_AIR:
-                return SkillAction.LEFT_CLICK_AIR;
-            case RIGHT_CLICK_BLOCK:
-                return SkillAction.RIGHT_CLICK_BLOCK;
-            case LEFT_CLICK_BLOCK:
-                return SkillAction.LEFT_CLICK_BLOCK;
-            case PHYSICAL: // Handles sneaking and jumping actions
-                // Check if the player is sneaking or jumping
-                if (player.isSneaking()) {
-                    if (action == Action.LEFT_CLICK_AIR) {
-                        return SkillAction.SHIFT_LEFT_CLICK_AIR;
-                    } else if (action == Action.RIGHT_CLICK_AIR) {
-                        return SkillAction.SHIFT_RIGHT_CLICK_AIR;
-                    } else if (action == Action.LEFT_CLICK_BLOCK) {
-                        return SkillAction.SHIFT_LEFT_CLICK_BLOCK;
-                    } else if (action == Action.RIGHT_CLICK_BLOCK) {
-                        return SkillAction.SHIFT_RIGHT_CLICK_BLOCK;
-                    }
-                } else {
-                    if (action == Action.LEFT_CLICK_AIR) {
-                        return SkillAction.JUMP_LEFT_CLICK;
-                    }
+        if (player.isSneaking()) {
+            if (action == Action.LEFT_CLICK_AIR) {
+                return SkillAction.SHIFT_LEFT_CLICK_AIR;
+            } else if (action == Action.RIGHT_CLICK_AIR) {
+                return SkillAction.SHIFT_RIGHT_CLICK_AIR;
+            } else if (action == Action.LEFT_CLICK_BLOCK) {
+                return SkillAction.SHIFT_LEFT_CLICK_BLOCK;
+            } else if (action == Action.RIGHT_CLICK_BLOCK) {
+                return SkillAction.SHIFT_RIGHT_CLICK_BLOCK;
+            }
+        } else {
+            if (!player.getLocation().getBlock().getType().isSolid()) {
+                if (action == Action.LEFT_CLICK_AIR) { //Player in air
+                    return SkillAction.JUMP_LEFT_CLICK;
                 }
-                return null; // Unknown action
-            default:
-                return null; // Unknown action
+
+            }
+            switch (action) {
+                case RIGHT_CLICK_AIR:
+                    return SkillAction.RIGHT_CLICK_AIR;
+                case LEFT_CLICK_AIR:
+                    return SkillAction.LEFT_CLICK_AIR;
+                case RIGHT_CLICK_BLOCK:
+                    return SkillAction.RIGHT_CLICK_BLOCK;
+                case LEFT_CLICK_BLOCK:
+                    return SkillAction.LEFT_CLICK_BLOCK;
+                case PHYSICAL: // Handles sneaking and jumping actions
+
+                    return null; // Unknown action
+                default:
+                    return null; // Unknown action
+            }
+
         }
+        return null; // Unknown action
     }
+
+
+    // Method to convert org.bukkit.event.block.Action to SkillAction
+
+//        switch (action) {
+//            case RIGHT_CLICK_AIR:
+//                return SkillAction.RIGHT_CLICK_AIR;
+//            case LEFT_CLICK_AIR:
+//                return SkillAction.LEFT_CLICK_AIR;
+//            case RIGHT_CLICK_BLOCK:
+//                return SkillAction.RIGHT_CLICK_BLOCK;
+//            case LEFT_CLICK_BLOCK:
+//                return SkillAction.LEFT_CLICK_BLOCK;
+//            case PHYSICAL: // Handles sneaking and jumping actions
+//                // Check if the player is sneaking or jumping
+////                if (player.isSneaking()) {
+////                    if (action == Action.LEFT_CLICK_AIR) {
+////                        return SkillAction.SHIFT_LEFT_CLICK_AIR;
+////                    } else if (action == Action.RIGHT_CLICK_AIR) {
+////                        return SkillAction.SHIFT_RIGHT_CLICK_AIR;
+////                    } else if (action == Action.LEFT_CLICK_BLOCK) {
+////                        return SkillAction.SHIFT_LEFT_CLICK_BLOCK;
+////                    } else if (action == Action.RIGHT_CLICK_BLOCK) {
+////                        return SkillAction.SHIFT_RIGHT_CLICK_BLOCK;
+////                    }
+////                } else {
+////                    if (action == Action.LEFT_CLICK_AIR) {
+////                        return SkillAction.JUMP_LEFT_CLICK;
+////                    }
+////                }
+//                return null; // Unknown action
+//            default:
+//                return null; // Unknown action
+//        }
+
 
     private boolean checkCooldown(Player player, SkillData skill) {
         long lastExecuted = cooldowns.getOrDefault(player.getUniqueId(), 0L);
@@ -215,10 +258,21 @@ public class Eskills extends JavaPlugin implements Listener {
         // Use MythicMobs command to execute the specified skill
         String skillToExecute = skill.getSkillToExecute();
 
+        String addPermission = "";
+        String removePermission = "";
+
+        Bukkit.dispatchCommand(Bukkit.getConsoleSender(), new String("lp user %player% permission set %permission% true")
+                        .replace("%permission%", addPermission)
+                .replace("%player%", player.getName()));
+
         // Execute the skill using the correct MythicMobs command
         String command = "mm test cast -s " + skillToExecute;
         player.performCommand(command);
 
+
+        Bukkit.dispatchCommand(Bukkit.getConsoleSender(), new String("lp user %player% permission set %permission% true")
+                .replace("%permission%", removePermission)
+                .replace("%player%", player.getName()));
         // Suppress the MythicMobs message in chat
         player.sendMessage(""); // Send an empty message
 
