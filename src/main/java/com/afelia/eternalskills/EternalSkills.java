@@ -1,11 +1,7 @@
-package com.afelia.eskills;
+package com.afelia.eternalskills;
 
-import io.lumine.mythic.api.skills.Skill;
 import io.lumine.mythic.bukkit.BukkitAPIHelper;
 import io.lumine.mythic.bukkit.MythicBukkit;
-import io.lumine.mythic.core.skills.SkillMechanic;
-import org.bukkit.Bukkit;
-import org.bukkit.ChatColor;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
@@ -21,7 +17,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.*;
 
-public class Eskills extends JavaPlugin implements Listener {
+public class EternalSkills extends JavaPlugin implements Listener {
 
     private FileConfiguration config;
     private Map<String, SkillData> skills = new HashMap<>();

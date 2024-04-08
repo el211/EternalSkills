@@ -37,6 +37,9 @@
                         <goals>
                             <goal>shade</goal>
                         </goals>
+                        <configuration>
+                            <finalName>EternalSkills</finalName>
+                        </configuration>
                     </execution>
                 </executions>
             </plugin>

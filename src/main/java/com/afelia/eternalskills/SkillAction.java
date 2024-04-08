@@ -1,4 +1,4 @@
-package com.afelia.eskills;
+package com.afelia.eternalskills;
 
 public enum SkillAction {
     RIGHT_CLICK_BLOCK,

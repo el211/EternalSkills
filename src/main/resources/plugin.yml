@@ -2,7 +2,7 @@ name: EternalSkills
 version: 1.0.0
 description: A plugin to trigger various skills on player actions.
 author: Elias
-main: com.afelia.eskills.Eskills
+main: com.afelia.eternalskills.EternalSkills
 api-version: '1.20'
 depend: [MythicMobs]
 commands:
