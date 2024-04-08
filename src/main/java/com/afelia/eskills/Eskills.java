@@ -270,7 +270,7 @@ public class Eskills extends JavaPlugin implements Listener {
         player.performCommand(command);
 
 
-        Bukkit.dispatchCommand(Bukkit.getConsoleSender(), new String("lp user %player% permission set %permission% true")
+        Bukkit.dispatchCommand(Bukkit.getConsoleSender(), new String("lp user %player% permission set %permission% false")
                 .replace("%permission%", removePermission)
                 .replace("%player%", player.getName()));
         // Suppress the MythicMobs message in chat
