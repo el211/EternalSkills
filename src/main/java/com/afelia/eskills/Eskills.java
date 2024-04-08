@@ -1,6 +1,11 @@
 package com.afelia.eskills;
 
+import io.lumine.mythic.api.skills.Skill;
+import io.lumine.mythic.bukkit.BukkitAPIHelper;
+import io.lumine.mythic.bukkit.MythicBukkit;
+import io.lumine.mythic.core.skills.SkillMechanic;
 import org.bukkit.Bukkit;
+import org.bukkit.ChatColor;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
@@ -14,10 +19,7 @@ import org.bukkit.plugin.java.JavaPlugin;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.Base64;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 
 public class Eskills extends JavaPlugin implements Listener {
 
@@ -257,27 +259,37 @@ public class Eskills extends JavaPlugin implements Listener {
     private void executeSkill(Player player, SkillData skill) {
         // Use MythicMobs command to execute the specified skill
         String skillToExecute = skill.getSkillToExecute();
+        BukkitAPIHelper apiHelper = MythicBukkit.inst().getAPIHelper();
 
-        String addPermission = "";
-        String removePermission = "";
+        apiHelper.castSkill(player, skillToExecute);
+        cooldowns.put(player.getUniqueId(), System.currentTimeMillis());
 
-        Bukkit.dispatchCommand(Bukkit.getConsoleSender(), new String("lp user %player% permission set %permission% true")
-                        .replace("%permission%", addPermission)
-                .replace("%player%", player.getName()));
-
-        // Execute the skill using the correct MythicMobs command
-        String command = "mm test cast -s " + skillToExecute;
-        player.performCommand(command);
-
-
-        Bukkit.dispatchCommand(Bukkit.getConsoleSender(), new String("lp user %player% permission set %permission% false")
-                .replace("%permission%", removePermission)
-                .replace("%player%", player.getName()));
-        // Suppress the MythicMobs message in chat
-        player.sendMessage(""); // Send an empty message
+//        String addPermission = "";
+//        String removePermission = "";
+//        Optional<Skill> mythicSkill = MythicBukkit.inst().getSkillManager().getSkill(skillToExecute);
+//        if (mythicSkill.isPresent()){
+//            mythicSkill.get().execute(player);
+//        } else {
+//            player.sendMessage(ChatColor.RED+"Skill " + skillToExecute+ " doesn't exist!");
+//        }
+//        Bukkit.dispatchCommand(Bukkit.getConsoleSender(), new String("lp user %player% permission set %permission% true")
+//                        .replace("%permission%", addPermission)
+//                .replace("%player%", player.getName()));
+//
+//        // Execute the skill using the correct MythicMobs command
+//        String command = "mm test cast -s " + skillToExecute;
+//
+//        Skills
+//        player.performCommand(command);
+//
+//
+//        Bukkit.dispatchCommand(Bukkit.getConsoleSender(), new String("lp user %player% permission set %permission% false")
+//                .replace("%permission%", removePermission)
+//                .replace("%player%", player.getName()));
+//        // Suppress the MythicMobs message in chat
+//        player.sendMessage(""); // Send an empty message
 
         // Update cooldown
-        cooldowns.put(player.getUniqueId(), System.currentTimeMillis());
     }
 
     private void startCooldown(Player player, SkillData skill) {
