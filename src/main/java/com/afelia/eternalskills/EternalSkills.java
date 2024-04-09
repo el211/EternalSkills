@@ -2,6 +2,7 @@ package com.afelia.eternalskills;
 
 import io.lumine.mythic.bukkit.BukkitAPIHelper;
 import io.lumine.mythic.bukkit.MythicBukkit;
+import org.bukkit.ChatColor;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
@@ -29,17 +30,21 @@ public class EternalSkills extends JavaPlugin implements Listener {
     @Override
     public void onEnable() {
         getServer().getPluginManager().registerEvents(this, this);
+
+
+
+        reload();
+        new EternalSkillsExpansion(this).register();
+    }
+
+    private void reload() {
+        skills = new HashMap<>();
+        cooldowns = new HashMap<>();
+
+
         saveDefaultConfig();
+        loadTags();
 
-
-        File f  = new File(getDataFolder(), "tags.yml");
-        if (!f.exists()) {
-            saveResource("tags.yml", false);
-        }
-        YamlConfiguration yamlConfiguration = YamlConfiguration.loadConfiguration(f);
-        for (String s : yamlConfiguration.getStringList("tags")) {
-            tags.add(s);
-        }
 
         config = getConfig();
         tagDataFile = new File(getDataFolder(), "tagdata.yml");
@@ -48,10 +53,25 @@ public class EternalSkills extends JavaPlugin implements Listener {
         }
         tagDataConfig = YamlConfiguration.loadConfiguration(tagDataFile);
         loadSkills();
-        new EternalSkillsExpansion(this).register();
+    }
+
+    private void loadTags() {
+        tags=new ArrayList<>();
+
+
+        File f  = new File(getDataFolder(), "tags.yml");
+        if (!f.exists()) {
+            saveResource("tags.yml", true);
+        }
+        YamlConfiguration yamlConfiguration = YamlConfiguration.loadConfiguration(f);
+        tags.addAll(yamlConfiguration.getStringList("tags"));
+
+
     }
 
     private void loadSkills() {
+        skills=new HashMap<>();
+
         ConfigurationSection skillsSection = config.getConfigurationSection("skills");
         if (skillsSection != null) {
             for (String skillKey : skillsSection.getKeys(false)) {
@@ -109,6 +129,14 @@ public class EternalSkills extends JavaPlugin implements Listener {
             String subCommand = args[2].toLowerCase();
             String tagName = args[3].toLowerCase();
             switch (subCommand) {
+                case "reload":
+                    if (player.hasPermission("eskills.tag.reload")) {
+                        reload();
+                        player.sendMessage(ChatColor.GREEN+"Reloaded");
+                    } else {
+                        player.sendMessage("You don't have permission to reload!");
+                    }
+                    break;
                 case "add":
                     if (player.hasPermission("eskills.tag.add")) {
                         if (!tags.contains(tagName)) {
