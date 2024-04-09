@@ -29,6 +29,7 @@ public class EternalSkills extends JavaPlugin implements Listener {
     public void onEnable() {
         getServer().getPluginManager().registerEvents(this, this);
         saveDefaultConfig();
+
         config = getConfig();
         tagDataFile = new File(getDataFolder(), "tagdata.yml");
         if (!tagDataFile.exists()) {
@@ -36,6 +37,7 @@ public class EternalSkills extends JavaPlugin implements Listener {
         }
         tagDataConfig = YamlConfiguration.loadConfiguration(tagDataFile);
         loadSkills();
+        new EternalSkillsExpansion(this).register();
     }
 
     private void loadSkills() {
@@ -136,6 +138,15 @@ public class EternalSkills extends JavaPlugin implements Listener {
         player.sendMessage("Tag '" + tagName + "' removed successfully!");
     }
 
+    public List<String> getTags(Player p) {
+        List<String> tags=new ArrayList<>();
+        for (String tagName : tagDataConfig.getConfigurationSection(p.getUniqueId().toString()).getKeys(false)) {
+            if (tagDataConfig.getBoolean(p.getUniqueId().toString()+"."+tagName)){
+                tags.add(tagName);
+            }
+        }
+        return tags;
+    }
     private void clearTags(Player player) {
         tagDataConfig.set(player.getUniqueId().toString(), null);
         saveTagData();
