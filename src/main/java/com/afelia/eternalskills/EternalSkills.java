@@ -25,10 +25,21 @@ public class EternalSkills extends JavaPlugin implements Listener {
     private File tagDataFile;
     private FileConfiguration tagDataConfig;
 
+    private List<String> tags=new ArrayList<>();
     @Override
     public void onEnable() {
         getServer().getPluginManager().registerEvents(this, this);
         saveDefaultConfig();
+
+
+        File f  = new File(getDataFolder(), "tags.yml");
+        if (!f.exists()) {
+            saveResource("tags.yml", false);
+        }
+        YamlConfiguration yamlConfiguration = YamlConfiguration.loadConfiguration(f);
+        for (String s : yamlConfiguration.getStringList("tags")) {
+            tags.add(s);
+        }
 
         config = getConfig();
         tagDataFile = new File(getDataFolder(), "tagdata.yml");
@@ -100,6 +111,10 @@ public class EternalSkills extends JavaPlugin implements Listener {
             switch (subCommand) {
                 case "add":
                     if (player.hasPermission("eskills.tag.add")) {
+                        if (!tags.contains(tagName)) {
+                            player.sendMessage("Tag doesnt exist");
+                            return;
+                        }
                         addTag(player, tagName);
                     } else {
                         player.sendMessage("You don't have permission to add tags!");
@@ -107,6 +122,10 @@ public class EternalSkills extends JavaPlugin implements Listener {
                     break;
                 case "remove":
                     if (player.hasPermission("eskills.tag.remove")) {
+                        if (!tags.contains(tagName)) {
+                            player.sendMessage("Tag doesnt exist");
+                            return;
+                        }
                         removeTag(player, tagName);
                     } else {
                         player.sendMessage("You don't have permission to remove tags!");
@@ -140,11 +159,16 @@ public class EternalSkills extends JavaPlugin implements Listener {
 
     public List<String> getTags(Player p) {
         List<String> tags=new ArrayList<>();
-        for (String tagName : tagDataConfig.getConfigurationSection(p.getUniqueId().toString()).getKeys(false)) {
-            if (tagDataConfig.getBoolean(p.getUniqueId().toString()+"."+tagName)){
-                tags.add(tagName);
+
+        for (String tag : this.tags) {
+            boolean equipped = tagDataConfig.getBoolean(p.getUniqueId().toString() + "." + tag);
+            if (equipped){
+                tags.add(tag);
+
             }
+
         }
+
         return tags;
     }
     private void clearTags(Player player) {
