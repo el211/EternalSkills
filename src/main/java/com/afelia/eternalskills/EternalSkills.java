@@ -41,6 +41,7 @@ public class EternalSkills extends JavaPlugin implements Listener {
         skills = new HashMap<>();
         cooldowns = new HashMap<>();
 
+        reloadConfig();
 
         saveDefaultConfig();
         loadTags();
@@ -104,7 +105,7 @@ public class EternalSkills extends JavaPlugin implements Listener {
                             executeSkill(player, skill);
                             startCooldown(player, skill);
                         } else {
-                            player.sendMessage("You don't have the required tag!");
+//                            player.sendMessage("You don't have the required tag!");
                         }
                     } else {
                         player.sendMessage("Skill is on cooldown!");
