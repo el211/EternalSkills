@@ -110,12 +110,12 @@ public class EternalSkills extends JavaPlugin implements Listener {
         for (SkillData skill : skills.values()) {
             SkillAction eventAction = convertToSkillAction(event.getAction(), player); // Pass the Player object
             if (eventAction == skill.getTriggerAction()) {
-                getLogger().info("Skill triggered: " + skill); // Add debug message
+//                getLogger().info("Skill triggered: " + skill); // Add debug message
                 if (player.hasPermission("eskills.trigger")) {
                     if (checkCooldown(player, skill)) {
-                        getLogger().info("Cooldown check passed."); // Add debug message
+//                        getLogger().info("Cooldown check passed."); // Add debug message
                         if (checkTag(player, skill)) {
-                            getLogger().info("Tag check passed."); // Add debug message
+//                            getLogger().info("Tag check passed."); // Add debug message
                             executeSkill(player, skill);
                             startCooldown(player, skill);
                         } else {
@@ -239,6 +239,7 @@ public class EternalSkills extends JavaPlugin implements Listener {
     private void clearTags(Player player) {
         tagDataConfig.set(player.getUniqueId().toString(), null);
         saveTagData();
+        tags.clear();
         player.sendMessage("All tags cleared successfully!");
     }
 
@@ -255,7 +256,7 @@ public class EternalSkills extends JavaPlugin implements Listener {
         }
 
         boolean hasTag = tagDataConfig.getBoolean(playerUUID + "." + tag, false);
-        getLogger().info("Player " + player.getName() + " has tag '" + tag + "': " + hasTag);
+//        getLogger().info("Player " + player.getName() + " has tag '" + tag + "': " + hasTag);
 
         return hasTag;
     }
