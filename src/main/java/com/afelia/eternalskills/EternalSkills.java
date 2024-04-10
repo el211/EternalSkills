@@ -3,6 +3,7 @@ package com.afelia.eternalskills;
 import io.lumine.mythic.bukkit.BukkitAPIHelper;
 import io.lumine.mythic.bukkit.MythicBukkit;
 import io.lumine.mythic.bukkit.utils.lib.jooq.impl.QOM;
+import io.lumine.mythic.core.skills.conditions.all.FactionSameCondition;
 import org.bukkit.ChatColor;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
@@ -92,13 +93,26 @@ public class EternalSkills extends JavaPlugin implements Listener {
             for (String skillKey : skillsSection.getKeys(false)) {
                 ConfigurationSection skillConfig = skillsSection.getConfigurationSection(skillKey);
                 if (skillConfig != null) {
-                    String triggerActionString = skillConfig.getString("trigger-action");
-                    SkillAction triggerAction = SkillAction.valueOf(triggerActionString.toUpperCase());
+                    List<SkillAction> actions =new ArrayList<>();
+
+                    if (skillConfig.isList("trigger-action")) {
+                        for (String s : skillConfig.getStringList("trigger-action")) {
+                            SkillAction triggerAction = SkillAction.valueOf(s.toUpperCase());
+                            actions.add(triggerAction);
+
+                        }
+                    } else {
+
+                        String triggerActionString = skillConfig.getString("trigger-action");
+                        SkillAction triggerAction = SkillAction.valueOf(triggerActionString.toUpperCase());
+                        actions.add(triggerAction);
+
+                    }
                     String skillToExecute = skillConfig.getString("skill-to-execute");
                     long cooldownDuration = skillConfig.getLong("cooldown-duration");
                     String condition = skillConfig.getString("condition");
                     String tag = skillConfig.getString("tag");
-                    skills.put(skillKey, new SkillData(triggerAction, skillToExecute, cooldownDuration, condition, tag));
+                    skills.put(skillKey, new SkillData(actions, skillToExecute, cooldownDuration, condition, tag));
                 }
             }
         }
@@ -109,7 +123,7 @@ public class EternalSkills extends JavaPlugin implements Listener {
         Player player = event.getPlayer();
         for (SkillData skill : skills.values()) {
             SkillAction eventAction = convertToSkillAction(event.getAction(), player); // Pass the Player object
-            if (eventAction == skill.getTriggerAction()) {
+            if (skill.getTriggerAction().contains(eventAction)) {
 //                getLogger().info("Skill triggered: " + skill); // Add debug message
                 if (player.hasPermission("eskills.trigger")) {
                     if (checkCooldown(player, skill)) {
@@ -394,13 +408,13 @@ public class EternalSkills extends JavaPlugin implements Listener {
     }
 
     private static class SkillData {
-        private SkillAction triggerAction;
+        private List<SkillAction> triggerAction;
         private String skillToExecute;
         private long cooldownDuration;
         private String condition;
         private String tag;
 
-        public SkillData(SkillAction triggerAction, String skillToExecute, long cooldownDuration, String condition, String tag) {
+        public SkillData(List<SkillAction>  triggerAction, String skillToExecute, long cooldownDuration, String condition, String tag) {
             this.triggerAction = triggerAction;
             this.skillToExecute = skillToExecute;
             this.cooldownDuration = cooldownDuration;
@@ -409,7 +423,7 @@ public class EternalSkills extends JavaPlugin implements Listener {
         }
 
         // Getters for accessing properties
-        public SkillAction getTriggerAction() {
+        public List<SkillAction>  getTriggerAction() {
             return triggerAction;
         }
 
