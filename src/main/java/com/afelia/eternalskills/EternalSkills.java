@@ -2,7 +2,11 @@ package com.afelia.eternalskills;
 
 import io.lumine.mythic.bukkit.BukkitAPIHelper;
 import io.lumine.mythic.bukkit.MythicBukkit;
+import io.lumine.mythic.bukkit.utils.lib.jooq.impl.QOM;
 import org.bukkit.ChatColor;
+import org.bukkit.command.Command;
+import org.bukkit.command.CommandSender;
+import org.bukkit.command.PluginCommand;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
@@ -13,6 +17,8 @@ import org.bukkit.event.block.Action;
 import org.bukkit.event.player.PlayerCommandPreprocessEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.plugin.java.JavaPlugin;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
 import java.io.IOException;
@@ -35,6 +41,11 @@ public class EternalSkills extends JavaPlugin implements Listener {
 
         reload(true);
         new EternalSkillsExpansion(this).register();
+        PluginCommand eskills = getCommand("eskills");
+        eskills.setTabCompleter(this);
+        eskills
+
+                .setExecutor(this);
     }
 
     private void reload(boolean start) {
@@ -120,36 +131,51 @@ public class EternalSkills extends JavaPlugin implements Listener {
         }
     }
 
-    @EventHandler
-    public void onPlayerCommand(PlayerCommandPreprocessEvent event) {
-        String[] args = event.getMessage().split(" ");
-        Player player = event.getPlayer();
-        if (args.length==2){
-            if (args[0].equalsIgnoreCase("/eskills") && args[1].equalsIgnoreCase("reload")){
-                if (player.hasPermission("eskills.tag.reload")) {
-                    reload(false);
-                    player.sendMessage(ChatColor.GREEN+"Reloaded");
-                } else {
-                    player.sendMessage("You don't have permission to reload!");
-                }
-                return;
-            }
+    @Nullable
+    @Override
+    public List<String> onTabComplete(@NotNull CommandSender sender, @NotNull Command command, @NotNull String alias, @NotNull String[] args) {
+        if (command.getName().equalsIgnoreCase("eskills")) {
+            if (args.length==0)return Arrays.asList("reload", "tag");
+            if (args.length==1)return Arrays.asList("clear", "remove", "add");
+            if (args.length==2)return tags;
         }
-        if (args.length >= 4 && args[0].equalsIgnoreCase("/eskills") && args[1].equalsIgnoreCase("tag")) {
+        return super.onTabComplete(sender, command, alias, args);
+    }
+
+    @Override
+    public boolean onCommand(@NotNull CommandSender s, @NotNull Command command, @NotNull String label, @NotNull String[] args) {
+        if (!command.getName().equalsIgnoreCase("eskills"))return false;
+
+        if (!(s instanceof Player)){
+            s.sendMessage(ChatColor.RED+"PLAYER ONLY COMMAND.");
+            return  false;
+        }
+        Player player = (Player) s;
+        if (args.length==1 && args[0].equalsIgnoreCase("reload")){
+            if (s.hasPermission("eskills.tag.reload")) {
+                reload(false);
+                s.sendMessage(ChatColor.GREEN+"Reloaded");
+            } else {
+                player.sendMessage("You don't have permission to reload!");
+            }
+            return true;
+        }
+
+        if (args.length >= 3&& args[0].equalsIgnoreCase("tag")) {
             if (!player.hasPermission("eskills.tag.manage")) {
                 player.sendMessage("You don't have permission to manage tags!");
-                return;
+                return false;
             }
 
-            String subCommand = args[2].toLowerCase();
-            String tagName = args[3].toLowerCase();
+            String subCommand = args[1].toLowerCase();
+            String tagName = args[2].toLowerCase();
             switch (subCommand) {
 
                 case "add":
                     if (player.hasPermission("eskills.tag.add")) {
                         if (!tags.contains(tagName)) {
                             player.sendMessage("Tag doesnt exist");
-                            return;
+                            return false;
                         }
                         addTag(player, tagName);
                     } else {
@@ -160,7 +186,7 @@ public class EternalSkills extends JavaPlugin implements Listener {
                     if (player.hasPermission("eskills.tag.remove")) {
                         if (!tags.contains(tagName)) {
                             player.sendMessage("Tag doesnt exist");
-                            return;
+                            return false;
                         }
                         removeTag(player, tagName);
                     } else {
@@ -179,7 +205,10 @@ public class EternalSkills extends JavaPlugin implements Listener {
                     break;
             }
         }
+        return true;
     }
+
+
 
     private void addTag(Player player, String tagName) {
         tagDataConfig.set(player.getUniqueId().toString() + "." + tagName, true);
