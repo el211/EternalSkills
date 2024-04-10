@@ -33,15 +33,18 @@ public class EternalSkills extends JavaPlugin implements Listener {
 
 
 
-        reload();
+        reload(true);
         new EternalSkillsExpansion(this).register();
     }
 
-    private void reload() {
+    private void reload(boolean start) {
         skills = new HashMap<>();
         cooldowns = new HashMap<>();
 
-        reloadConfig();
+        if (!start){
+
+            reloadConfig();
+        }
 
         saveDefaultConfig();
         loadTags();
@@ -121,6 +124,17 @@ public class EternalSkills extends JavaPlugin implements Listener {
     public void onPlayerCommand(PlayerCommandPreprocessEvent event) {
         String[] args = event.getMessage().split(" ");
         Player player = event.getPlayer();
+        if (args.length==2){
+            if (args[0].equalsIgnoreCase("/eskills") && args[1].equalsIgnoreCase("reload")){
+                if (player.hasPermission("eskills.tag.reload")) {
+                    reload(false);
+                    player.sendMessage(ChatColor.GREEN+"Reloaded");
+                } else {
+                    player.sendMessage("You don't have permission to reload!");
+                }
+                return;
+            }
+        }
         if (args.length >= 4 && args[0].equalsIgnoreCase("/eskills") && args[1].equalsIgnoreCase("tag")) {
             if (!player.hasPermission("eskills.tag.manage")) {
                 player.sendMessage("You don't have permission to manage tags!");
@@ -130,14 +144,7 @@ public class EternalSkills extends JavaPlugin implements Listener {
             String subCommand = args[2].toLowerCase();
             String tagName = args[3].toLowerCase();
             switch (subCommand) {
-                case "reload":
-                    if (player.hasPermission("eskills.tag.reload")) {
-                        reload();
-                        player.sendMessage(ChatColor.GREEN+"Reloaded");
-                    } else {
-                        player.sendMessage("You don't have permission to reload!");
-                    }
-                    break;
+
                 case "add":
                     if (player.hasPermission("eskills.tag.add")) {
                         if (!tags.contains(tagName)) {
