@@ -136,10 +136,10 @@ public class EternalSkills extends JavaPlugin implements Listener {
 //                            player.sendMessage("You don't have the required tag!");
                         }
                     } else {
-                        player.sendMessage("Skill is on cooldown!");
+                        player.sendMessage(ChatColor.RED+ "Skill is on cooldown!");
                     }
                 } else {
-                    player.sendMessage("You don't have permission to use this skill!");
+                    player.sendMessage(ChatColor.RED+"You don't have permission to use this skill!");
                 }
             }
         }
@@ -170,14 +170,14 @@ public class EternalSkills extends JavaPlugin implements Listener {
                 reload(false);
                 s.sendMessage(ChatColor.GREEN+"Reloaded");
             } else {
-                player.sendMessage("You don't have permission to reload!");
+                player.sendMessage(ChatColor.RED+"You don't have permission to reload!");
             }
             return true;
         }
 
         if (args.length >= 3&& args[0].equalsIgnoreCase("tag")) {
             if (!player.hasPermission("eskills.tag.manage")) {
-                player.sendMessage("You don't have permission to manage tags!");
+                player.sendMessage(ChatColor.RED+"You don't have permission to manage tags!");
                 return false;
             }
 
@@ -188,7 +188,7 @@ public class EternalSkills extends JavaPlugin implements Listener {
                 case "add":
                     if (player.hasPermission("eskills.tag.add")) {
                         if (!tags.contains(tagName)) {
-                            player.sendMessage("Tag doesnt exist");
+                            player.sendMessage(ChatColor.RED+"Tag doesnt exist");
                             return false;
                         }
                         addTag(player, tagName);
@@ -199,19 +199,19 @@ public class EternalSkills extends JavaPlugin implements Listener {
                 case "remove":
                     if (player.hasPermission("eskills.tag.remove")) {
                         if (!tags.contains(tagName)) {
-                            player.sendMessage("Tag doesnt exist");
+                            player.sendMessage(ChatColor.RED+"Tag doesnt exist");
                             return false;
                         }
                         removeTag(player, tagName);
                     } else {
-                        player.sendMessage("You don't have permission to remove tags!");
+                        player.sendMessage(ChatColor.RED+"You don't have permission to remove tags!");
                     }
                     break;
                 case "clear":
                     if (player.hasPermission("eskills.tag.clear")) {
                         clearTags(player);
                     } else {
-                        player.sendMessage("You don't have permission to clear tags!");
+                        player.sendMessage(ChatColor.RED+"You don't have permission to clear tags!");
                     }
                     break;
                 default:
@@ -227,13 +227,13 @@ public class EternalSkills extends JavaPlugin implements Listener {
     private void addTag(Player player, String tagName) {
         tagDataConfig.set(player.getUniqueId().toString() + "." + tagName, true);
         saveTagData();
-        player.sendMessage("Tag '" + tagName + "' added successfully!");
+        player.sendMessage(ChatColor.GREEN+"Tag '" + tagName + "' added successfully!");
     }
 
     private void removeTag(Player player, String tagName) {
         tagDataConfig.set(player.getUniqueId().toString() + "." + tagName, null);
         saveTagData();
-        player.sendMessage("Tag '" + tagName + "' removed successfully!");
+        player.sendMessage(ChatColor.GREEN+"Tag '" + tagName + "' removed successfully!");
     }
 
     public List<String> getTags(Player p) {
@@ -254,7 +254,7 @@ public class EternalSkills extends JavaPlugin implements Listener {
         tagDataConfig.set(player.getUniqueId().toString(), null);
         saveTagData();
         tags.clear();
-        player.sendMessage("All tags cleared successfully!");
+        player.sendMessage(ChatColor.GREEN+"All tags cleared successfully!");
     }
 
     private boolean checkTag(Player player, SkillData skill) {
@@ -298,12 +298,12 @@ public class EternalSkills extends JavaPlugin implements Listener {
                 return SkillAction.SHIFT_RIGHT_CLICK_BLOCK;
             }
         } else {
-            if (!player.getLocation().getBlock().getType().isSolid()) {
-                if (action == Action.LEFT_CLICK_AIR) { //Player in air
-                    return SkillAction.JUMP_LEFT_CLICK;
-                }
-
-            }
+//            if (!player.getLocation().getBlock().getType().isSolid()) {
+//                if (action == Action.LEFT_CLICK_AIR) { //Player in air
+//                    return SkillAction.JUMP_LEFT_CLICK;
+//                }
+//
+//            }
             switch (action) {
                 case RIGHT_CLICK_AIR:
                     return SkillAction.RIGHT_CLICK_AIR;
