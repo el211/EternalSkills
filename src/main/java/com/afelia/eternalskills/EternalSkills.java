@@ -4,6 +4,9 @@ import io.lumine.mythic.bukkit.BukkitAPIHelper;
 import io.lumine.mythic.bukkit.MythicBukkit;
 import io.lumine.mythic.bukkit.utils.lib.jooq.impl.QOM;
 import io.lumine.mythic.core.skills.conditions.all.FactionSameCondition;
+import net.md_5.bungee.api.ChatMessageType;
+import net.md_5.bungee.api.chat.TextComponent;
+import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
@@ -24,6 +27,7 @@ import org.jetbrains.annotations.Nullable;
 import java.io.File;
 import java.io.IOException;
 import java.util.*;
+import java.util.stream.Collectors;
 
 public class EternalSkills extends JavaPlugin implements Listener {
 
@@ -136,26 +140,53 @@ public class EternalSkills extends JavaPlugin implements Listener {
 //                            player.sendMessage("You don't have the required tag!");
                         }
                     } else {
-                        player.sendMessage(ChatColor.RED+ "Skill is on cooldown!");
+                        long lastExecuted = cooldowns.get(player.getUniqueId())-System.currentTimeMillis();
+
+                        player.spigot().sendMessage(ChatMessageType.ACTION_BAR, new TextComponent(ChatColor.GREEN+"Ability Cooldown: " + ChatColor.WHITE+( lastExecuted/1000)+"s"));
+
                     }
                 } else {
-                    player.sendMessage(ChatColor.RED+"You don't have permission to use this skill!");
+                    player.sendMessage("You don't have permission to use this skill!");
                 }
             }
         }
     }
 
+    public static List<String> filterStartsWith(List<String> completions, String partialInput) {
+        if (partialInput==null||partialInput.isEmpty()){
+            return completions;
+        }
+        List<String> filteredList = new ArrayList<>();
+        for (String completion : completions) {
+            if (completion.toLowerCase().startsWith(partialInput.toLowerCase())) {
+                filteredList.add(completion);
+            }
+        }
+        return filteredList;
+    }
     @Nullable
     @Override
     public List<String> onTabComplete(@NotNull CommandSender sender, @NotNull Command command, @NotNull String alias, @NotNull String[] args) {
         if (command.getName().equalsIgnoreCase("eskills")) {
             if (args.length==0)return Arrays.asList("reload", "tag");
-            if (args.length==1)return Arrays.asList("clear", "remove", "add");
-            if (args.length==2)return tags;
+            if (args.length==1)return filterStartsWith( Arrays.asList("reload", "tag"),args[0].toLowerCase());
+            if (args.length==2)return filterStartsWith(  Arrays.asList("clear", "remove", "add"), args[1].toLowerCase());
+            if (args.length==3){
+                return getOnlinePlayersCompletion(args, 2);
+            }
         }
         return super.onTabComplete(sender, command, alias, args);
     }
+    public static List<String> getOnlinePlayersCompletion(String[] args ) {
+        return getOnlinePlayersCompletion(args,0);
 
+    }
+    public static List<String> getOnlinePlayersCompletion(String[] args, int start  ) {
+        if (args.length==start){
+            return Bukkit.getOnlinePlayers().stream().map(player -> player.getName()).collect(Collectors.toList());
+        }
+        return filterStartsWith(Bukkit.getOnlinePlayers().stream().map(player -> player.getName()).collect(Collectors.toList()), args[start]);
+    }
     @Override
     public boolean onCommand(@NotNull CommandSender s, @NotNull Command command, @NotNull String label, @NotNull String[] args) {
         if (!command.getName().equalsIgnoreCase("eskills"))return false;
@@ -315,7 +346,7 @@ public class EternalSkills extends JavaPlugin implements Listener {
                     return SkillAction.LEFT_CLICK_BLOCK;
                 case PHYSICAL: // Handles sneaking and jumping actions
 
-                    return null; // Unknown action
+                    return SkillAction.LEFT_CLICK_AIR;
                 default:
                     return null; // Unknown action
             }
@@ -360,13 +391,15 @@ public class EternalSkills extends JavaPlugin implements Listener {
 
 
     private boolean checkCooldown(Player player, SkillData skill) {
-        long lastExecuted = cooldowns.getOrDefault(player.getUniqueId(), 0L);
-        long currentTime = System.currentTimeMillis();
-        long cooldown = skill.getCooldownDuration() * 1000; // Cooldown duration in milliseconds
-        long tot = currentTime - lastExecuted;
-        return tot >= cooldown;
-    }
+        if (!cooldowns.containsKey(player.getUniqueId())){
+            return true;
+        }
+        if (System.currentTimeMillis()> cooldowns.get(player.getUniqueId())){
+            return true;
+        }
 
+        return false;
+    }
     private void executeSkill(Player player, SkillData skill) {
         // Use MythicMobs command to execute the specified skill
         String skillToExecute = skill.getSkillToExecute();
