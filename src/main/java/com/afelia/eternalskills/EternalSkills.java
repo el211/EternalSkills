@@ -164,17 +164,40 @@ public class EternalSkills extends JavaPlugin implements Listener {
         }
         return filteredList;
     }
+    /*
+         s.sendMessage(ChatColor.GREEN+"/eskill tag add "+ChatColor.GRAY+"<tag> <player>");
+        s.sendMessage(ChatColor.GREEN+"/eskill tag remove "+ChatColor.GRAY+"<tag> <player>");
+        s.sendMessage(ChatColor.GREEN+"/eskill tag clear "+ChatColor.GRAY+"<player>");
+        s.sendMessage(ChatColor.GREEN+"/eskill help");
+        s.sendMessage(ChatColor.GREEN+"/eskill reload");
+     */
     @Nullable
     @Override
     public List<String> onTabComplete(@NotNull CommandSender sender, @NotNull Command command, @NotNull String alias, @NotNull String[] args) {
         if (command.getName().equalsIgnoreCase("eskills")) {
-            if (args.length==0)return Arrays.asList("reload", "tag");
-            if (args.length==1)return filterStartsWith( Arrays.asList("reload", "tag"),args[0].toLowerCase());
-            if (args.length==2)return filterStartsWith(  Arrays.asList("clear", "remove", "add"), args[1].toLowerCase());
-            if (args.length==3){
-                return getOnlinePlayersCompletion(args, 2);
+            if (args.length==0)return Arrays.asList("reload", "tag", "help");
+            if (args.length==1)return filterStartsWith( Arrays.asList("reload", "tag", "help"),args[0].toLowerCase());
+            if (args.length==2){
+                if (args[0].equalsIgnoreCase("tag")) {
+                    return filterStartsWith(  Arrays.asList("clear", "remove", "add"), args[1].toLowerCase());
+
+                }
             }
-            return new ArrayList<>();
+            if (args.length==3){
+                if (args[0].equalsIgnoreCase("tag")) {
+                    if (args[1].equalsIgnoreCase("clear")) {
+                        return getOnlinePlayersCompletion(args, 2);
+                    } else {
+                        return filterStartsWith(  tags, args[2].toLowerCase());
+                    }
+                }
+            }
+            if (args.length==4){
+                if (!args[1].equalsIgnoreCase("clear")) {
+                    return getOnlinePlayersCompletion(args, 3);
+                }
+                return new ArrayList<>();
+            }
         }
         return super.onTabComplete(sender, command, alias, args);
     }
@@ -196,6 +219,7 @@ public class EternalSkills extends JavaPlugin implements Listener {
             s.sendMessage(ChatColor.RED+"PLAYER ONLY COMMAND.");
             return  false;
         }
+
         Player player = (Player) s;
         if (args.length==1 && args[0].equalsIgnoreCase("reload")){
             if (s.hasPermission("eskills.tag.reload")) {
@@ -206,7 +230,22 @@ public class EternalSkills extends JavaPlugin implements Listener {
             }
             return true;
         }
-
+        if (args.length==0){
+            if (s.hasPermission("eskills.tag.help")) {
+                sendHelp(s);
+            } else {
+                player.sendMessage(ChatColor.RED+"You don't have permission to reload!");
+            }
+            return true;
+        }
+        if (args.length==1 && args[0].equalsIgnoreCase("help")){
+            if (s.hasPermission("eskills.tag.help")) {
+                sendHelp(s);
+            } else {
+                player.sendMessage(ChatColor.RED+"You don't have permission to reload!");
+            }
+            return true;
+        }
         if (args.length >= 3&& args[0].equalsIgnoreCase("tag")) {
             if (!player.hasPermission("eskills.tag.manage")) {
                 player.sendMessage(ChatColor.RED+"You don't have permission to manage tags!");
@@ -254,6 +293,20 @@ public class EternalSkills extends JavaPlugin implements Listener {
         return true;
     }
 
+    private void sendHelp(CommandSender s) {
+        s.sendMessage(ChatColor.GREEN+"/eskill tag add "+ChatColor.GRAY+"<tag> <player>");
+        s.sendMessage(ChatColor.GREEN+"/eskill tag remove "+ChatColor.GRAY+"<tag> <player>");
+        s.sendMessage(ChatColor.GREEN+"/eskill tag clear "+ChatColor.GRAY+"<player>");
+        s.sendMessage(ChatColor.GREEN+"/eskill help");
+        s.sendMessage(ChatColor.GREEN+"/eskill reload");
+        /*
+        r /eskills:
+/eskill tag add <tag> <player>
+/eskill tag remove <tag> <player>
+/eskill tag clear  <player>
+
+         */
+    }
 
 
     private void addTag(Player player, String tagName) {
