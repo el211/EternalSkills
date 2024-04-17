@@ -174,6 +174,7 @@ public class EternalSkills extends JavaPlugin implements Listener {
             if (args.length==3){
                 return getOnlinePlayersCompletion(args, 2);
             }
+            return new ArrayList<>();
         }
         return super.onTabComplete(sender, command, alias, args);
     }
