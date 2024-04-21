@@ -51,6 +51,21 @@ public class EternalSkills extends JavaPlugin implements Listener {
         eskills
 
                 .setExecutor(this);
+
+        Bukkit.getScheduler().scheduleSyncRepeatingTask(this, () -> {
+            for (Player p : Bukkit.getServer().getOnlinePlayers()) {
+                if (cooldowns.containsKey(p.getUniqueId())) {
+                    long lastExecuted = cooldowns.get(p.getUniqueId())-System.currentTimeMillis();
+                    if (lastExecuted> 0) {
+
+                        p.spigot().sendMessage(ChatMessageType.ACTION_BAR, new TextComponent(ChatColor.GREEN+"Ability Cooldown: " + ChatColor.WHITE+( lastExecuted/1000)+"s"));
+                    } else {
+                        cooldowns.remove(p.getUniqueId());
+                    }
+
+                }
+            }
+        },5,5);
     }
 
     private void reload(boolean start) {
@@ -140,9 +155,9 @@ public class EternalSkills extends JavaPlugin implements Listener {
 //                            player.sendMessage("You don't have the required tag!");
                         }
                     } else {
-                        long lastExecuted = cooldowns.get(player.getUniqueId())-System.currentTimeMillis();
-
-                        player.spigot().sendMessage(ChatMessageType.ACTION_BAR, new TextComponent(ChatColor.GREEN+"Ability Cooldown: " + ChatColor.WHITE+( lastExecuted/1000)+"s"));
+//                        long lastExecuted = cooldowns.get(player.getUniqueId())-System.currentTimeMillis();
+//
+//                        player.spigot().sendMessage(ChatMessageType.ACTION_BAR, new TextComponent(ChatColor.GREEN+"Ability Cooldown: " + ChatColor.WHITE+( lastExecuted/1000)+"s"));
 
                     }
                 } else {
@@ -460,7 +475,7 @@ public class EternalSkills extends JavaPlugin implements Listener {
         BukkitAPIHelper apiHelper = MythicBukkit.inst().getAPIHelper();
 
         apiHelper.castSkill(player, skillToExecute);
-        cooldowns.put(player.getUniqueId(), System.currentTimeMillis());
+//        cooldowns.put(player.getUniqueId(), System.currentTimeMillis());
 
 //        String addPermission = "";
 //        String removePermission = "";
@@ -491,7 +506,7 @@ public class EternalSkills extends JavaPlugin implements Listener {
     }
 
     private void startCooldown(Player player, SkillData skill) {
-        cooldowns.put(player.getUniqueId(), System.currentTimeMillis() + skill.getCooldownDuration() * 1000); // Add cooldown duration
+        cooldowns.put(player.getUniqueId(), System.currentTimeMillis() + (skill.getCooldownDuration() * 1000)); // Add cooldown duration
     }
 
     private static class SkillData {
